@@ -7,10 +7,12 @@ function ImportScript(url, onloadFunction, onErrorFunction) {
 		script.src = url;
 		script.async = true;
 
-		script.onload = onloadFunction;
+		if(onloadFunction)
+			script.onload = onloadFunction;
 		script.onerror = function (e) {
 			script.parentNode.removeChild(script);
-			onErrorFunction();
+			if(onErrorFunction)
+				onErrorFunction();
 		};
 
 		document.body.appendChild(script);

@@ -47,3 +47,16 @@
   width: 100%;
   margin: 0;
 }
+
+html, body, #root {
+  height:100%;
+  background-color: #1f1f1b; /*#242420*/
+}
+
+.cell-border {
+  background-color: #2F3129;
+  padding: 15px 15px 15px 15px;
+  border: 100px #2F3129;
+  border-radius: 3rem;
+  width: 750px;
+}
