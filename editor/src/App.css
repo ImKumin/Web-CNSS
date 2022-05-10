@@ -53,10 +53,29 @@ html, body, #root {
   background-color: #1f1f1b; /*#242420*/
 }
 
+.compile-button {
+  background-color: #fda787;
+}
+
 .cell-border {
   background-color: #2F3129;
   padding: 15px 15px 15px 15px;
   border: 100px #2F3129;
   border-radius: 3rem;
-  width: 750px;
+  width: 900px;
+}
+
+.side-bar-sticky {
+  height: 100vh;
+}
+
+.side-bar-content {
+  flex-grow: 1;
+}
+
+.side-bar-footer {
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

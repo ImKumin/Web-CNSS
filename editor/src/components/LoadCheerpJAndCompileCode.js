@@ -59,7 +59,7 @@ function LoadCheerpJAndCompileCode() {
 
 	return (
 		<React.Fragment>
-			<Button onClick={compileJavaCode}
+			<Button className="bg-danger" onClick={compileJavaCode}
 					id="compileButton"> Compile </Button>
 		</React.Fragment>
 	);

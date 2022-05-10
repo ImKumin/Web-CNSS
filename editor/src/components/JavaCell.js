@@ -1,40 +1,19 @@
 import '../App.css';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import AceEditor from "react-ace";
 
 import "ace-builds/src-noconflict/mode-java";
 import "ace-builds/src-noconflict/theme-monokai";
 import "ace-builds/src-noconflict/ext-language_tools";
-import {Button} from "react-bootstrap";
-import ImportScript from "../hooks/ImportScript";
 
-function JavaCell() {
-	const [currentCode, setCurrentCode] = useState(`import java.util.Arrays;
-import cnss.simulator.*;
-import cnss.lib.*;
-
-public class JavaFiddle extends AbstractApplicationAlgorithm {
-  
-  public JavaFiddle() {
-      super(true, "minimal-node");
-  }
-
-  public int initialise(int now, int node_id, Node self, String[] args) {
-    super.initialise(now, node_id, self, args);
-
-    super.log( now, "args: " + Arrays.asList(args));
-\t\treturn 0;
-\t}
-} 
-
-`);
+function JavaCell(props) {
 
 	function onLoad() {
 
 	}
 
 	function onChange(newValue) {
-		setCurrentCode(newValue);
+		props.onChange(newValue);
 	}
 
 	return (
@@ -43,24 +22,24 @@ public class JavaFiddle extends AbstractApplicationAlgorithm {
 				<AceEditor
 					id={"aceEditor"}
 					height={500}
-					width={700}
-					placeholder="CNSS Source Code"
+					width={850}
+					placeholder="Code here"
 					mode="java"
 					theme="monokai"
-					name="blah2"
+					name={"java-cell" + props.cellInfo.id}
 					onLoad={onLoad}
 					onChange={onChange}
 					fontSize={14}
-					showPrintMargin={true}
+					showPrintMargin={false}
 					showGutter={true}
 					highlightActiveLine={true}
-					value={currentCode}
+					value={props.cellInfo.code}
 					setOptions={{
 						enableBasicAutocompletion: true,
 						enableLiveAutocompletion: true,
 						enableSnippets: true,
 						showLineNumbers: true,
-						tabSize: 2,
+						tabSize: 4,
 					}}/>
 			</div>
 			<br/>
