@@ -21,18 +21,18 @@ function JavaCell(props) {
 			<div className="cell-border">
 				<AceEditor
 					id={"aceEditor"}
-					height={500}
+					height={props.cellInfo.style.height}
 					width={850}
 					placeholder="Code here"
 					mode="java"
 					theme="monokai"
-					name={"java-cell" + props.cellInfo.id}
+					name={"java-cell"}
 					onLoad={onLoad}
 					onChange={onChange}
 					fontSize={14}
 					showPrintMargin={false}
 					showGutter={true}
-					highlightActiveLine={true}
+					highlightActiveLine={false}
 					value={props.cellInfo.code}
 					setOptions={{
 						enableBasicAutocompletion: true,

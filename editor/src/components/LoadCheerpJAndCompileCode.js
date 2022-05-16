@@ -7,13 +7,10 @@ import "ace-builds/src-noconflict/ext-language_tools";
 import {Button} from "react-bootstrap";
 import ImportScript from "../hooks/ImportScript";
 
-function LoadCheerpJAndCompileCode() {
-	const [currentId, setCurrentId] = useState(0);
-
+function LoadCheerpJAndCompileCode(props) {
 	loadCheerpJ();
 
 	function loadCheerpJ() {
-		//ImportScript("https://javafiddle.leaningtech.com/tools.jar.js");
 		ImportScript("https://cjrtnc.leaningtech.com/2.2/runtime/rt.jar.jdk.js");
 		ImportScript("https://cjrtnc.leaningtech.com/2.2/runtime/rt.jar.sun.reflect.js");
 		ImportScript("https://cjrtnc.leaningtech.com/2.2/runtime/rt.jar.java.lang.js");
@@ -21,35 +18,42 @@ function LoadCheerpJAndCompileCode() {
 		ImportScript("https://cjrtnc.leaningtech.com/2.2/loader.js", onLoadCheerpJ, loadCheerpJ);
 	}
 
-	function cheerpJReady() {
-		let cb = document.getElementById("compileButton");
-		cb.disabled = false;
-	}
-
-	function compileJavaCode() {
-		setCurrentId(currentId + 1);
+	function compileJavaCode(cells) {
 		let cb = document.getElementById("compileButton");
 		cb.disabled = true;
 		/*let console = document.getElementById("console");
 		console.textContent = "> Compiling...\r\n\r\n";*/
-		let newCode = "";
-		console.log(newCode);
-		let packageName = "rc";
-		newCode = "package " + packageName + ";\n" + newCode;
-		window.cheerpjAddStringFile("/str/JavaFiddle.java", newCode);
-		window.cheerpjRunMain("com.sun.tools.javac.Main", "/app/tools.jar:/files/:/app/cnss.jar", "/str/JavaFiddle.java", "-d", "/files/").then(
-			function (r) {
-				let cb = document.getElementById("compileButton");
-				cb.disabled = false;
-				// Non-zero exit code means that an error has happened
-				if (r == 0) {
-					console.textContent = "> Running...\r\n\r\n";
-					//window.cheerpjRunMain(packageName + ".JavaFiddle", "/app/tools.jar:/files/");
-					//window.cheerpjRunJar("/app/cnss.jar");
-					window.cheerpjRunMain("cnss.simulator.Simulator", "/app/tools.jar:/files/", "/app/config.txt");
-				}
-			}
-		);
+		let classPaths = [];
+		for (let i in cells) {
+			let classPath = addJavaClass(cells[i]);
+			classPaths.push(classPath);
+		}
+
+		compileWithCheerpJ(classPaths, afterCompile);
+	}
+
+	function compileWithCheerpJ(args, compileDoneFunction) {
+		let newArgs = ["com.sun.tools.javac.Main", "/app/tools.jar:/app/cnss.jar:/files/", "-d", "/files/"];
+		for (let i in args)
+			newArgs.push(args[i]);
+		window.cheerpjRunMain.apply(null, newArgs).then(compileDoneFunction);
+	}
+
+	function afterCompile(r) {
+		let cb = document.getElementById("compileButton");
+		cb.disabled = false;
+		// Non-zero exit code means that an error has happened
+		if (r == 0) {
+			console.textContent = "> Running...\r\n\r\n";
+			window.cheerpjRunMain("cnss.simulator.Simulator", "/app/tools.jar:/files/", "/app/config.txt");
+		}
+	}
+
+	function addJavaClass(cell) {
+		const newCode = "package rc;\n" + cell.code;
+		const classPath = "/str/" + cell.className + ".java";
+		window.cheerpjAddStringFile(classPath, newCode);
+		return classPath;
 	}
 
 	function onLoadCheerpJ() {
@@ -57,9 +61,14 @@ function LoadCheerpJAndCompileCode() {
 		window.cheerpjInit({preloadResources: preloadResources}).then(cheerpJReady);
 	}
 
+	function cheerpJReady() {
+		let cb = document.getElementById("compileButton");
+		cb.disabled = false;
+	}
+
 	return (
 		<React.Fragment>
-			<Button className="bg-danger" onClick={compileJavaCode}
+			<Button className="bg-danger" onClick={() => compileJavaCode(props.cells)}
 					id="compileButton"> Compile </Button>
 		</React.Fragment>
 	);

@@ -3,23 +3,23 @@ import {ProSidebar, Menu, MenuItem, SubMenu, SidebarFooter, SidebarContent} from
 import '../custom.scss';
 import LoadCheerpJAndCompileCode from "./LoadCheerpJAndCompileCode";
 
-function Sidebar() {
+function Sidebar(props) {
 	return (
 		<ProSidebar>
 			<SidebarContent>
 				<div className="side-bar-content">
 					<Menu iconShape="square">
 						<MenuItem>Dashboard</MenuItem>
-						<SubMenu title="Components">
-							<MenuItem>Component 1</MenuItem>
-							<MenuItem>Component 2</MenuItem>
+						<SubMenu title="Add Cell">
+							<MenuItem onClick={() => props.addNewCell("empty")}>Add Java Empty Cell</MenuItem>
+							<MenuItem onClick={() => props.addNewCell("minimal-node")}>Add Minimal Node</MenuItem>
 						</SubMenu>
 					</Menu>
 				</div>
 			</SidebarContent>
 			<SidebarFooter>
 				<div className="side-bar-footer">
-					<LoadCheerpJAndCompileCode/>
+					<LoadCheerpJAndCompileCode cells={props.cells}/>
 				</div>
 			</SidebarFooter>
 		</ProSidebar>
