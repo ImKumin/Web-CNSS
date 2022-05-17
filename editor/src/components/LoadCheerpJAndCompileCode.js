@@ -25,8 +25,11 @@ function LoadCheerpJAndCompileCode(props) {
 		console.textContent = "> Compiling...\r\n\r\n";*/
 		let classPaths = [];
 		for (let i in cells) {
-			let classPath = addJavaClass(cells[i]);
-			classPaths.push(classPath);
+			let cell = cells[i];
+			if (cell.type == "txt")
+				addConfigFile(cell);
+			else
+				classPaths.push(addJavaClass(cell));
 		}
 
 		compileWithCheerpJ(classPaths, afterCompile);
@@ -45,7 +48,7 @@ function LoadCheerpJAndCompileCode(props) {
 		// Non-zero exit code means that an error has happened
 		if (r == 0) {
 			console.textContent = "> Running...\r\n\r\n";
-			window.cheerpjRunMain("cnss.simulator.Simulator", "/app/tools.jar:/files/", "/app/config.txt");
+			window.cheerpjRunMain("cnss.simulator.Simulator", "/app/tools.jar:/files/", "/str/config.txt");
 		}
 	}
 
@@ -54,6 +57,11 @@ function LoadCheerpJAndCompileCode(props) {
 		const classPath = "/str/" + cell.className + ".java";
 		window.cheerpjAddStringFile(classPath, newCode);
 		return classPath;
+	}
+
+	function addConfigFile(cell) {
+		const classPath = "/str/config.txt";
+		window.cheerpjAddStringFile(classPath, cell.code);
 	}
 
 	function onLoadCheerpJ() {

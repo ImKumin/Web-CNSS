@@ -27,8 +27,8 @@ public class MinimalNode extends AbstractApplicationAlgorithm {
 	return 0;
 	}
 }`;
-	DEFAULT_CONFIG = `node 0 0 cnss.lib.EndSystemControl MinimalNode arg1 arg2 
-node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
+	DEFAULT_CONFIG = `node 0 0 cnss.lib.EndSystemControl rc.MinimalNode arg1 arg2 
+node 1 0 cnss.lib.EndSystemControl rc.MinimalNode arg3 arg4`;
 
 	constructor(props) {
 		super(props);
@@ -53,10 +53,10 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 		let newCell = {};
 		switch (type) {
 			case "empty":
-				newCell = this.generateCell("java", "", "");
+				newCell = this.generateCell("java", "");
 				break;
 			case "minimal-node":
-				newCell = this.generateCell("java", this.DEFAULT_NODE, "MinimalNode");
+				newCell = this.generateCell("java", this.DEFAULT_NODE);
 				break;
 		}
 		let newCells = [...this.state.cells];
