@@ -7,7 +7,9 @@ import "ace-builds/src-noconflict/ext-language_tools";
 import StickyBox from "react-sticky-box";
 import Sidebar from "./Sidebar";
 import {Col, Row} from "react-bootstrap";
-import Cells from "./Cells";
+import CellCollection from "./CellCollection";
+import cellTypes from "./CellType";
+import CellType from "./CellType";
 
 class Notebook extends React.Component {
 
@@ -27,23 +29,42 @@ public class MinimalNode extends AbstractApplicationAlgorithm {
 	return 0;
 	}
 }`;
-	DEFAULT_CONFIG = `node 0 0 cnss.lib.EndSystemControl rc.MinimalNode arg1 arg2 
-node 1 0 cnss.lib.EndSystemControl rc.MinimalNode arg3 arg4`;
+	DEFAULT_CONFIG = `node 0 0 cnss.lib.EndSystemControl MinimalNode arg1 arg2 
+node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 
 	constructor(props) {
 		super(props);
 		this.state = {
+			cheerpJInfo: {
+				packageName: "cheerpJPackage",
+				packageCounter: 0
+			},
 			cells: [
-				this.generateCell("txt", this.DEFAULT_CONFIG, "Config"),
-				this.generateCell("java", this.DEFAULT_NODE, "MinimalNode")
-			]
+				this.generateCell(cellTypes.txt, this.DEFAULT_CONFIG, "xml"),
+				this.generateCell(cellTypes.java, this.DEFAULT_NODE)
+			],
+			consoleCell: this.generateCell(cellTypes.console, "", "xml", true, true)
 		};
+	}
+
+	changeConsoleCellCode(newCode) {
+		let newCell = this.state.consoleCell;
+		newCell.code = newCode;
+		newCell.style.height = this.calculateCellHeight(newCode);
+		this.setState({consoleCell: newCell});
+	}
+
+	addConsoleCellCode(newCode) {
+		let newCell = this.state.consoleCell;
+		newCell.code += newCode;
+		newCell.style.height = this.calculateCellHeight(newCode);
+		this.setState({consoleCell: newCell});
 	}
 
 	changeCellCode(i, newCode) {
 		let newCells = [...this.state.cells];
 		newCells[i].code = newCode;
-		if (newCells[i].type == "java")
+		if (newCells[i].type == CellType.java)
 			newCells[i].className = this.calculateClassName(newCode);
 		newCells[i].style.height = this.calculateCellHeight(newCode);
 		this.setState({cells: newCells});
@@ -53,10 +74,10 @@ node 1 0 cnss.lib.EndSystemControl rc.MinimalNode arg3 arg4`;
 		let newCell = {};
 		switch (type) {
 			case "empty":
-				newCell = this.generateCell("java", "");
+				newCell = this.generateCell(CellType.java, "");
 				break;
 			case "minimal-node":
-				newCell = this.generateCell("java", this.DEFAULT_NODE);
+				newCell = this.generateCell(CellType.java, this.DEFAULT_NODE);
 				break;
 		}
 		let newCells = [...this.state.cells];
@@ -64,13 +85,16 @@ node 1 0 cnss.lib.EndSystemControl rc.MinimalNode arg3 arg4`;
 		this.setState({cells: newCells});
 	}
 
-	generateCell(type, code) {
+	generateCell(type, code, mode, gutter, readOnly) {
 		return {
 			type: type,
 			code: code,
 			className: this.calculateClassName(code),
 			style: {
-				height: this.calculateCellHeight(code)
+				height: this.calculateCellHeight(code),
+				gutter: gutter !== undefined ? gutter : true,
+				readOnly: readOnly !== undefined ? readOnly : false,
+				mode: mode !== undefined ? mode : "java"
 			}
 		};
 	}
@@ -88,12 +112,28 @@ node 1 0 cnss.lib.EndSystemControl rc.MinimalNode arg3 arg4`;
 		return 30 + newLineCount * 17;
 	}
 
+	incrementCheerpJPackageCounter() {
+		let curr = this.state.cheerpJInfo;
+		let newInfo = {
+			packageName: curr.packageName,
+			packageCounter: curr.packageCounter + 1
+		};
+		this.setState(newInfo);
+	}
+
+
 	render() {
 		return (
 			<React.Fragment>
 				<div style={{display: "flex", alignItems: "flex-start"}}>
 					<StickyBox className="side-bar-sticky">
-						<Sidebar cells={this.state.cells} addNewCell={(type) => this.addNewCell(type)}/>
+						<Sidebar cells={this.state.cells}
+								 cheerpJInfo={this.state.cheerpJInfo}
+								 addNewCell={(type) => this.addNewCell(type)}
+								 changeConsoleCellCode={(newCode) => this.changeConsoleCellCode(newCode)}
+								 addConsoleCellCode={(newCode) => this.addConsoleCellCode(newCode)}
+								 incrementCheerpJPackageCounter={() => this.incrementCheerpJPackageCounter()}
+						/>
 					</StickyBox>
 					<div>
 						<br/>
@@ -103,8 +143,10 @@ node 1 0 cnss.lib.EndSystemControl rc.MinimalNode arg3 arg4`;
 
 								</Col>
 								<Col className='col-sm-9'>
-									<Cells cells={this.state.cells}
-										   changeCellCode={(i, newCode) => this.changeCellCode(i, newCode)}/>
+									<CellCollection cells={this.state.cells}
+													changeCellCode={(i, newCode) => this.changeCellCode(i, newCode)}
+													consoleCell={this.state.consoleCell}
+									/>
 								</Col>
 							</Row>
 						</div>

@@ -19,7 +19,11 @@ function Sidebar(props) {
 			</SidebarContent>
 			<SidebarFooter>
 				<div className="side-bar-footer">
-					<LoadCheerpJAndCompileCode cells={props.cells}/>
+					<LoadCheerpJAndCompileCode cells={props.cells}
+											   changeConsoleCellCode={(newCode) => props.changeConsoleCellCode(newCode)}
+											   addConsoleCellCode={(newCode) => props.addConsoleCellCode(newCode)}
+											   incrementCheerpJPackageCounter={() => props.incrementCheerpJPackageCounter()}
+					/>
 				</div>
 			</SidebarFooter>
 		</ProSidebar>

@@ -6,8 +6,10 @@ import "ace-builds/src-noconflict/theme-monokai";
 import "ace-builds/src-noconflict/ext-language_tools";
 import {Button} from "react-bootstrap";
 import ImportScript from "../hooks/ImportScript";
+import cellTypes from "./CellType";
 
 function LoadCheerpJAndCompileCode(props) {
+
 	loadCheerpJ();
 
 	function loadCheerpJ() {
@@ -21,22 +23,23 @@ function LoadCheerpJAndCompileCode(props) {
 	function compileJavaCode(cells) {
 		let cb = document.getElementById("compileButton");
 		cb.disabled = true;
-		/*let console = document.getElementById("console");
-		console.textContent = "> Compiling...\r\n\r\n";*/
+		props.changeConsoleCellCode("Compiling Simulation...\n");
 		let classPaths = [];
 		for (let i in cells) {
 			let cell = cells[i];
-			if (cell.type == "txt")
+			if (cell.type == cellTypes.txt)
 				addConfigFile(cell);
-			else
+			else if (cell.type == cellTypes.java)
 				classPaths.push(addJavaClass(cell));
 		}
-
 		compileWithCheerpJ(classPaths, afterCompile);
 	}
 
 	function compileWithCheerpJ(args, compileDoneFunction) {
-		let newArgs = ["com.sun.tools.javac.Main", "/app/tools.jar:/app/cnss.jar:/files/", "-d", "/files/"];
+		document.getElementById("console").textContent = "";
+		onChangeConsole();
+		props.incrementCheerpJPackageCounter();
+		let newArgs = ["com.sun.tools.javac.Main", "/app/tools.jar:/files/:/app/cnss.jar", "-d", "/files/"];
 		for (let i in args)
 			newArgs.push(args[i]);
 		window.cheerpjRunMain.apply(null, newArgs).then(compileDoneFunction);
@@ -47,15 +50,14 @@ function LoadCheerpJAndCompileCode(props) {
 		cb.disabled = false;
 		// Non-zero exit code means that an error has happened
 		if (r == 0) {
-			console.textContent = "> Running...\r\n\r\n";
+			props.addConsoleCellCode("Running Simulation...\n");
 			window.cheerpjRunMain("cnss.simulator.Simulator", "/app/tools.jar:/files/", "/str/config.txt");
 		}
 	}
 
 	function addJavaClass(cell) {
-		const newCode = "package rc;\n" + cell.code;
 		const classPath = "/str/" + cell.className + ".java";
-		window.cheerpjAddStringFile(classPath, newCode);
+		window.cheerpjAddStringFile(classPath, cell.code);
 		return classPath;
 	}
 
@@ -74,10 +76,21 @@ function LoadCheerpJAndCompileCode(props) {
 		cb.disabled = false;
 	}
 
+	function onChangeConsole() {
+		if (document.getElementById("console").textContent)
+			props.changeConsoleCellCode(document.getElementById("console").textContent);
+	}
+
+	useEffect(() => {
+		const interval = setInterval(onChangeConsole, 500);
+		return () => clearInterval(interval);
+	}, []);
+
 	return (
 		<React.Fragment>
 			<Button className="bg-danger" onClick={() => compileJavaCode(props.cells)}
 					id="compileButton"> Compile </Button>
+			<div id="console" className="d-none"></div>
 		</React.Fragment>
 	);
 }
