@@ -8,7 +8,6 @@ import StickyBox from "react-sticky-box";
 import Sidebar from "./Sidebar";
 import {Col, Row} from "react-bootstrap";
 import CellCollection from "./CellCollection";
-import cellTypes from "./CellType";
 import CellType from "./CellType";
 
 class Notebook extends React.Component {
@@ -32,6 +31,8 @@ public class MinimalNode extends AbstractApplicationAlgorithm {
 	DEFAULT_CONFIG = `node 0 0 cnss.lib.EndSystemControl MinimalNode arg1 arg2 
 node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 
+	DEFAULT_MARKDOWN = `Markdown Cell`;
+
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -40,10 +41,11 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 				packageCounter: 0
 			},
 			cells: [
-				this.generateCell(cellTypes.txt, this.DEFAULT_CONFIG, "xml"),
-				this.generateCell(cellTypes.java, this.DEFAULT_NODE)
+				this.generateCell(CellType.txt, this.DEFAULT_CONFIG, "xml"),
+				this.generateCell(CellType.markdown, this.DEFAULT_MARKDOWN),
+				this.generateCell(CellType.java, this.DEFAULT_NODE)
 			],
-			consoleCell: this.generateCell(cellTypes.console, "", "xml", true, true)
+			consoleCell: this.generateCell(CellType.console, "", "xml", true, true)
 		};
 	}
 
@@ -78,6 +80,9 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 				break;
 			case "minimal-node":
 				newCell = this.generateCell(CellType.java, this.DEFAULT_NODE);
+				break;
+			case "markdown":
+				newCell = this.generateCell(CellType.markdown, this.DEFAULT_MARKDOWN);
 				break;
 		}
 		let newCells = [...this.state.cells];
