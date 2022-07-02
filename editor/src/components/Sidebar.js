@@ -1,7 +1,7 @@
 import React from 'react';
 import {ProSidebar, Menu, MenuItem, SubMenu, SidebarFooter, SidebarContent} from 'react-pro-sidebar';
 import '../custom.scss';
-import LoadCheerpJAndCompileCode from "./LoadCheerpJAndCompileCode";
+import CompilerAndWorkerManager from "./CompilerAndWorkerManager";
 import CellType from "./CellType";
 
 function Sidebar(props) {
@@ -21,10 +21,10 @@ function Sidebar(props) {
 			</SidebarContent>
 			<SidebarFooter>
 				<div className="side-bar-footer">
-					<LoadCheerpJAndCompileCode cells={props.cells}
-											   changeConsoleCellCode={(newCode) => props.changeConsoleCellCode(newCode)}
-											   addConsoleCellCode={(newCode) => props.addConsoleCellCode(newCode)}
-											   incrementCheerpJPackageCounter={() => props.incrementCheerpJPackageCounter()}
+					<CompilerAndWorkerManager cells={props.cells}
+											  changeConsoleCellCode={(newCode) => props.changeConsoleCellCode(newCode)}
+											  addConsoleCellCode={(newCode) => props.addConsoleCellCode(newCode)}
+											  incrementCheerpJPackageCounter={() => props.incrementCheerpJPackageCounter()}
 					/>
 				</div>
 			</SidebarFooter>

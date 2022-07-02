@@ -8,12 +8,20 @@ import Cell from "./Cell";
 
 function CellCollection(props) {
 	function renderCell(i) {
-		return <Cell cellInfo={props.cells[i]} onChange={newCode => props.changeCellCode(i, newCode)}/>;
+		return <Cell cellInfo={props.cells[i]}
+					 onChange={newCode => props.changeCellCode(i, newCode)}
+					 onFocusMarkdown={() => props.onFocusMarkdown(i, true)}
+					 onBlurMarkdown={() => props.onFocusMarkdown(i, false)}
+					 moveCellUp={() => props.moveCell(i, -1)}
+					 moveCellDown={() => props.moveCell(i, +1)}
+					 deleteCell={() => props.deleteCell(i)}
+		/>;
 	}
 
 	function renderConsole() {
-		return <Cell cellInfo={props.consoleCell} onChange={() => {
-		}}/>;
+		return <Cell cellInfo={props.consoleCell}
+					 onChange={null}
+		/>;
 	}
 
 	return <React.Fragment>

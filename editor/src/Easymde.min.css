@@ -543,6 +543,7 @@ span.CodeMirror-selectedtext {
     -ms-user-select: none;
     -o-user-select: none;
     user-select: none;
+    margin-right: 400px;
     padding: 9px 10px;
     border-top: 1px solid #2F3129;
     border-left: 1px solid #2F3129;
@@ -852,4 +853,8 @@ span[data-img-src]::after {
 
 .CodeMirror .cm-spell-error:not(.cm-url):not(.cm-comment):not(.cm-tag):not(.cm-word) {
     background: rgba(255, 0, 0, .15)
+}
+
+.CodeMirror-scroll {
+    min-height: 30px !important;
 }

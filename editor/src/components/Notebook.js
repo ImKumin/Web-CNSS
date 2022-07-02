@@ -6,7 +6,7 @@ import "ace-builds/src-noconflict/theme-monokai";
 import "ace-builds/src-noconflict/ext-language_tools";
 import StickyBox from "react-sticky-box";
 import Sidebar from "./Sidebar";
-import {Col, Row} from "react-bootstrap";
+import {Button, Col, Row} from "react-bootstrap";
 import CellCollection from "./CellCollection";
 import CellType from "./CellType";
 
@@ -31,7 +31,7 @@ public class MinimalNode extends AbstractApplicationAlgorithm {
 	DEFAULT_CONFIG = `node 0 0 cnss.lib.EndSystemControl MinimalNode arg1 arg2 
 node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 
-	DEFAULT_MARKDOWN = `Markdown Cell`;
+	DEFAULT_MARKDOWN = `# Markdown Cell`;
 
 	constructor(props) {
 		super(props);
@@ -52,14 +52,14 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 	changeConsoleCellCode(newCode) {
 		let newCell = this.state.consoleCell;
 		newCell.code = newCode;
-		newCell.style.height = this.calculateCellHeight(newCode);
+		newCell.style.height = this.calculateCellHeight(newCell.code);
 		this.setState({consoleCell: newCell});
 	}
 
 	addConsoleCellCode(newCode) {
 		let newCell = this.state.consoleCell;
 		newCell.code += newCode;
-		newCell.style.height = this.calculateCellHeight(newCode);
+		newCell.style.height = this.calculateCellHeight(newCell.code);
 		this.setState({consoleCell: newCell});
 	}
 
@@ -90,6 +90,22 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 		this.setState({cells: newCells});
 	}
 
+	moveCell(i, value) {
+		if (i + value == 0)
+			return;
+		let newCells = [...this.state.cells];
+		let element = newCells[i];
+		newCells.splice(i, 1);
+		newCells.splice(i + value, 0, element);
+		this.setState({cells: newCells});
+	}
+
+	deleteCell(i) {
+		let newCells = [...this.state.cells];
+		newCells.splice(i, 1);
+		this.setState({cells: newCells});
+	}
+
 	generateCell(type, code, mode, gutter, readOnly) {
 		return {
 			type: type,
@@ -100,8 +116,17 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 				gutter: gutter !== undefined ? gutter : true,
 				readOnly: readOnly !== undefined ? readOnly : false,
 				mode: mode !== undefined ? mode : "java"
+			},
+			markdown: {
+				focused: false
 			}
 		};
+	}
+
+	onFocusMarkdown(i, value) {
+		let newCells = [...this.state.cells];
+		newCells[i].markdown.focused = value;
+		this.setState({cells: newCells})
 	}
 
 	calculateClassName(code) {
@@ -126,6 +151,28 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 		this.setState(newInfo);
 	}
 
+	initColabMode() {
+		console.log("Initing colaborative mode.");
+		window.Convergence.connectAnonymously("http://localhost:8000/api/realtime/convergence/default", "kumin")
+			.then(d => {
+				let domain = d;
+				// Now open the model, creating it using the initial data if it does not exist.
+				return domain.models().openAutoCreate({
+					collection: "example-ace",
+					id: "kuminExampleId",
+					ephemeral: true,
+					data: {text: "Hello Kumin"}
+				})
+			})
+			.then(handleOpen)
+			.catch(error => {
+				console.error("Could not open model ", error);
+			});
+
+		function handleOpen(model) {
+			console.log("Handling");
+		}
+	}
 
 	render() {
 		return (
@@ -151,10 +198,18 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 									<CellCollection cells={this.state.cells}
 													changeCellCode={(i, newCode) => this.changeCellCode(i, newCode)}
 													consoleCell={this.state.consoleCell}
+													onFocusMarkdown={(i, value) => this.onFocusMarkdown(i, value)}
+													moveCell={(i, value) => this.moveCell(i, value)}
+													deleteCell={(i) => this.deleteCell(i)}
 									/>
 								</Col>
 							</Row>
 						</div>
+						{/*
+						 <div>
+							<Button onClick={() => this.initColabMode()}> Init Colab </Button>
+						</div>
+						*/}
 					</div>
 				</div>
 			</React.Fragment>
