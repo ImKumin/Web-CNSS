@@ -1,4 +1,4 @@
-importScripts("./CellType.js");
+importScripts("./CellTypeEnum.js");
 
 document = {
 	elements: {},
@@ -72,7 +72,8 @@ function afterCompile(r) {
 }
 
 function addJavaClass(cell) {
-	const classPath = "/str/" + cell.className + ".java";
+	let packagePath = cell.packageName ? cell.packageName + "/" : "";
+	const classPath = "/str/" + packagePath + cell.className + ".java";
 	self.cheerpjAddStringFile(classPath, cell.code);
 	return classPath;
 }
@@ -95,7 +96,7 @@ function cheerpJReady(e) {
 function onChangeConsole() {
 	if (document.getElementById("console").textContent) {
 		sendMessage("override", document.getElementById("console").textContent);
-		close();
+		setTimeout(close, 1000);
 	}
 }
 

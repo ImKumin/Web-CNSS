@@ -8,30 +8,11 @@ import StickyBox from "react-sticky-box";
 import Sidebar from "./Sidebar";
 import {Button, Col, Row} from "react-bootstrap";
 import CellCollection from "./CellCollection";
-import CellType from "./CellType";
+import CellType from "./CellTypeEnum";
+import CellCode from "./CellCodeEnum";
+import Graphics from "./Graphics";
 
 class Notebook extends React.Component {
-
-	DEFAULT_NODE = `import java.util.Arrays;
-import cnss.simulator.*;
-import cnss.lib.*;
-
-public class MinimalNode extends AbstractApplicationAlgorithm {
-	public MinimalNode() {
-		super(true, "minimal-node");
-	}
-	
-	public int initialise(int now, int node_id, Node self, String[] args) {
-		super.initialise(now, node_id, self, args);
-	
-		super.log( now, "args: " + Arrays.asList(args));
-	return 0;
-	}
-}`;
-	DEFAULT_CONFIG = `node 0 0 cnss.lib.EndSystemControl MinimalNode arg1 arg2 
-node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
-
-	DEFAULT_MARKDOWN = `# Markdown Cell`;
 
 	constructor(props) {
 		super(props);
@@ -41,9 +22,9 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 				packageCounter: 0
 			},
 			cells: [
-				this.generateCell(CellType.txt, this.DEFAULT_CONFIG, "xml"),
-				this.generateCell(CellType.markdown, this.DEFAULT_MARKDOWN),
-				this.generateCell(CellType.java, this.DEFAULT_NODE)
+				this.generateCell(CellType.txt, CellCode.DEFAULT_CONFIG, "xml"),
+				this.generateCell(CellType.markdown, CellCode.DEFAULT_MARKDOWN),
+				this.generateCell(CellType.java, CellCode.DEFAULT_NODE)
 			],
 			consoleCell: this.generateCell(CellType.console, "", "xml", true, true)
 		};
@@ -66,8 +47,10 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 	changeCellCode(i, newCode) {
 		let newCells = [...this.state.cells];
 		newCells[i].code = newCode;
-		if (newCells[i].type == CellType.java)
+		if (newCells[i].type == CellType.java) {
 			newCells[i].className = this.calculateClassName(newCode);
+			newCells[i].packageName = this.calculateClassPackageName(newCode);
+		}
 		newCells[i].style.height = this.calculateCellHeight(newCode);
 		this.setState({cells: newCells});
 	}
@@ -79,10 +62,13 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 				newCell = this.generateCell(CellType.java, "");
 				break;
 			case "minimal-node":
-				newCell = this.generateCell(CellType.java, this.DEFAULT_NODE);
+				newCell = this.generateCell(CellType.java, CellCode.DEFAULT_NODE);
 				break;
 			case "markdown":
-				newCell = this.generateCell(CellType.markdown, this.DEFAULT_MARKDOWN);
+				newCell = this.generateCell(CellType.markdown, CellCode.DEFAULT_MARKDOWN);
+				break;
+			case "periodic-node":
+				newCell = this.generateCell(CellType.java, CellCode.PERIODIC_NODE);
 				break;
 		}
 		let newCells = [...this.state.cells];
@@ -111,6 +97,7 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 			type: type,
 			code: code,
 			className: this.calculateClassName(code),
+			packageName: this.calculateClassPackageName(code),
 			style: {
 				height: this.calculateCellHeight(code),
 				gutter: gutter !== undefined ? gutter : true,
@@ -131,6 +118,14 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 
 	calculateClassName(code) {
 		let match = code.match(new RegExp("class" + '\\s(\\w+)'));
+		if (match && match.length > 1)
+			return match[1];
+		else
+			return "";
+	}
+
+	calculateClassPackageName(code) {
+		let match = code.match(new RegExp("package" + '\\s(\\w+)'));
 		if (match && match.length > 1)
 			return match[1];
 		else
@@ -191,10 +186,10 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 						<br/>
 						<div className="container-fluid no-padding">
 							<Row className="full-row">
-								<Col className='col-sm-3'>
+								<Col className='col-sm-2'>
 
 								</Col>
-								<Col className='col-sm-9'>
+								<Col className='col-sm-10'>
 									<CellCollection cells={this.state.cells}
 													changeCellCode={(i, newCode) => this.changeCellCode(i, newCode)}
 													consoleCell={this.state.consoleCell}
@@ -202,14 +197,18 @@ node 1 0 cnss.lib.EndSystemControl MinimalNode arg3 arg4`;
 													moveCell={(i, value) => this.moveCell(i, value)}
 													deleteCell={(i) => this.deleteCell(i)}
 									/>
+									<Graphics/>
 								</Col>
 							</Row>
 						</div>
 						{/*
 						 <div>
-							<Button onClick={() => this.initColabMode()}> Init Colab </Button>
+								<Button onClick={() => this.initColabMode()}> Init Colab </Button>
 						</div>
 						*/}
+						<div>
+
+						</div>
 					</div>
 				</div>
 			</React.Fragment>
