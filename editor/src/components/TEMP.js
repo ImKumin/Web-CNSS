@@ -28,3 +28,6 @@ public class SimulatorOverwrite {
 System.out.println(java.util.Arrays.asList(new java.io.File("/files").list()));
 
 removeStringFile
+
+System.out.println(java.util.Arrays.asList(new java.io.File("/str/").list()));
+System.out.println(new java.io.File("/str/earth.jpg").length());

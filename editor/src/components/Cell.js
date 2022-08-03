@@ -45,7 +45,7 @@ function Cell(props) {
 		return <AceEditor
 			id={"aceEditor"}
 			height={props.cellInfo.style.height}
-			width={850}
+			width={1020}
 			placeholder=""
 			mode={props.cellInfo.style.mode}
 			theme="monokai"

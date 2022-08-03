@@ -12,7 +12,12 @@ function CompilerAndWorkerManager(props) {
 		props.changeConsoleCellCode("Preparing Worker...\n");
 		let myWorker = new Worker('./workers/CompileCodeWorker.js');
 		myWorker.onmessage = (e) => receiveWorkerMessage(e.data);
-		myWorker.postMessage(props.cells);
+
+		let data = {
+			cells: props.cells,
+			otherFiles: props.otherFiles
+		};
+		myWorker.postMessage(data);
 	}
 
 	function receiveWorkerMessage(data) {

@@ -41,16 +41,21 @@ function loadCheerpJ(e) {
 	onLoadCheerpJ(e);
 }
 
-function compileJavaCode(cells) {
+function compileJavaCode(data) {
 	self.document.editElementById("compileButton", true);
 	sendMessage("add", "Compiling Simulation...\n");
 	let classPaths = [];
-	for (let i in cells) {
-		let cell = cells[i];
+	for (let i in data.cells) {
+		let cell = data.cells[i];
 		if (cell.type == cellTypes.txt)
 			addConfigFile(cell);
 		else if (cell.type == cellTypes.java)
 			classPaths.push(addJavaClass(cell));
+	}
+	for (let i in data.otherFiles) {
+		let file = data.otherFiles[i];
+		if (file.type == cellTypes.image)
+			addImageFile(file);
 	}
 	compileWithCheerpJ(classPaths, afterCompile);
 }
@@ -74,13 +79,21 @@ function afterCompile(r) {
 function addJavaClass(cell) {
 	let packagePath = cell.packageName ? cell.packageName + "/" : "";
 	const classPath = "/str/" + packagePath + cell.className + ".java";
+	console.log(classPath);
 	self.cheerpjAddStringFile(classPath, cell.code);
 	return classPath;
 }
 
 function addConfigFile(cell) {
 	const classPath = "/str/config.txt";
+	console.log(classPath);
 	self.cheerpjAddStringFile(classPath, cell.code);
+}
+
+function addImageFile(file) {
+	const classPath = "/str/" + file.name;
+	console.log(classPath);
+	self.cheerpjAddStringFile(classPath, new Uint8Array(file.content, 0, file.content.length));
 }
 
 function onLoadCheerpJ(e) {

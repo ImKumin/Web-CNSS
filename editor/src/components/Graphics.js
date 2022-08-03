@@ -5,7 +5,7 @@ import {Button} from "react-bootstrap";
 class Graphics extends React.Component {
 	constructor(props) {
 		super(props);
-		this.canvasWidth = 900;
+		this.canvasWidth = 1070;
 		this.canvasHeight = 500;
 		this.canvasRef = React.createRef();
 		this.nodes = {};

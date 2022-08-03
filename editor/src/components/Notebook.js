@@ -6,57 +6,32 @@ import "ace-builds/src-noconflict/theme-monokai";
 import "ace-builds/src-noconflict/ext-language_tools";
 import StickyBox from "react-sticky-box";
 import Sidebar from "./Sidebar";
-import {Button, Col, Row} from "react-bootstrap";
+import {Col, Row} from "react-bootstrap";
 import CellCollection from "./CellCollection";
 import CellType from "./CellTypeEnum";
 import CellCode from "./CellCodeEnum";
 import Graphics from "./Graphics";
+import ImportExportProjectModal from "./ImportExportProjectModal";
 
 class Notebook extends React.Component {
-
 	constructor(props) {
 		super(props);
 		this.state = {
-			cheerpJInfo: {
-				packageName: "cheerpJPackage",
-				packageCounter: 0
-			},
-			cells: [
-				this.generateCell(CellType.txt, CellCode.DEFAULT_CONFIG, "xml"),
-				this.generateCell(CellType.markdown, CellCode.DEFAULT_MARKDOWN),
-				this.generateCell(CellType.java, CellCode.DEFAULT_NODE)
-			],
-			consoleCell: this.generateCell(CellType.console, "", "xml", true, true)
+			cells: this.generateDefaultProjectCells(),
+			otherFiles: [],
+			consoleCell: this.generateCell(CellType.console, "", "xml", true, true),
+			projects: {"Project 1": this.cells},
+			selectedProject: "Project 1",
+			showModal: false
 		};
 	}
 
-	changeConsoleCellCode(newCode) {
-		let newCell = this.state.consoleCell;
-		newCell.code = newCode;
-		newCell.style.height = this.calculateCellHeight(newCell.code);
-		this.setState({consoleCell: newCell});
+	componentDidMount() {
+		this.loadNotebook();
 	}
 
-	addConsoleCellCode(newCode) {
-		let newCell = this.state.consoleCell;
-		newCell.code += newCode;
-		newCell.style.height = this.calculateCellHeight(newCell.code);
-		this.setState({consoleCell: newCell});
-	}
-
-	changeCellCode(i, newCode) {
-		let newCells = [...this.state.cells];
-		newCells[i].code = newCode;
-		if (newCells[i].type == CellType.java) {
-			newCells[i].className = this.calculateClassName(newCode);
-			newCells[i].packageName = this.calculateClassPackageName(newCode);
-		}
-		newCells[i].style.height = this.calculateCellHeight(newCode);
-		this.setState({cells: newCells});
-	}
-
-	addNewCell(type) {
-		let newCell = {};
+	addNewCell(type, code) {
+		let newCell;
 		switch (type) {
 			case "empty":
 				newCell = this.generateCell(CellType.java, "");
@@ -66,30 +41,34 @@ class Notebook extends React.Component {
 				break;
 			case "markdown":
 				newCell = this.generateCell(CellType.markdown, CellCode.DEFAULT_MARKDOWN);
+				if (code)
+					newCell = this.generateCell(CellType.markdown, code);
 				break;
 			case "periodic-node":
 				newCell = this.generateCell(CellType.java, CellCode.PERIODIC_NODE);
 				break;
+			case "java-node":
+				newCell = this.generateCell(CellType.java, code ? code : "");
+				break;
+			case "markdown-node":
+				newCell = this.generateCell(CellType.markdown, code ? code : "");
+				break;
+			default:
+				newCell = this.generateCell(CellType.java, code ? code : "");
+				break;
 		}
 		let newCells = [...this.state.cells];
-		newCells.push(newCell);
+		let duplicate = false;
+		for (let i in newCells) {
+			if (newCells[i].code === newCell.code && newCells[i].type === newCell.type && newCell.type !== CellType.markdown) {
+				newCells[i] = newCell;
+				duplicate = true;
+			}
+		}
+		if (!duplicate)
+			newCells.push(newCell);
 		this.setState({cells: newCells});
-	}
-
-	moveCell(i, value) {
-		if (i + value == 0)
-			return;
-		let newCells = [...this.state.cells];
-		let element = newCells[i];
-		newCells.splice(i, 1);
-		newCells.splice(i + value, 0, element);
-		this.setState({cells: newCells});
-	}
-
-	deleteCell(i) {
-		let newCells = [...this.state.cells];
-		newCells.splice(i, 1);
-		this.setState({cells: newCells});
+		this.saveProject();
 	}
 
 	generateCell(type, code, mode, gutter, readOnly) {
@@ -110,6 +89,79 @@ class Notebook extends React.Component {
 		};
 	}
 
+	generateDefaultProjectCells() {
+		return [
+			this.generateCell(CellType.txt, CellCode.DEFAULT_CONFIG, "xml"),
+			this.generateCell(CellType.markdown, CellCode.DEFAULT_MARKDOWN),
+			this.generateCell(CellType.java, CellCode.DEFAULT_NODE)
+		]
+	}
+
+	changeConsoleCellCode(newCode) {
+		let newCell = this.state.consoleCell;
+		newCell.code = newCode;
+		newCell.style.height = this.calculateCellHeight(newCell.code);
+		this.setState({consoleCell: newCell});
+	}
+
+	addConsoleCellCode(newCode) {
+		let newCell = this.state.consoleCell;
+		newCell.code += newCode;
+		newCell.style.height = this.calculateCellHeight(newCell.code);
+		this.setState({consoleCell: newCell});
+	}
+
+	changeCellCode(i, newCode) {
+		let newCells = [...this.state.cells];
+		newCells[i].code = newCode;
+		if (newCells[i].type === CellType.java) {
+			newCells[i].className = this.calculateClassName(newCode);
+			newCells[i].packageName = this.calculateClassPackageName(newCode);
+		}
+		newCells[i].style.height = this.calculateCellHeight(newCode);
+		this.setState({cells: newCells});
+		this.saveProject();
+	}
+
+	moveCell(i, value) {
+		if (i + value === 0)
+			return;
+		let newCells = [...this.state.cells];
+		let element = newCells[i];
+		newCells.splice(i, 1);
+		newCells.splice(i + value, 0, element);
+		this.setState({cells: newCells});
+		this.saveProject();
+	}
+
+	deleteCell(i) {
+		let newCells = [...this.state.cells];
+		newCells.splice(i, 1);
+		this.setState({cells: newCells});
+		this.saveProject();
+	}
+
+	addFile(name, type, content, size) {
+		let file = {
+			name: name,
+			type: type,
+			content: content,
+			size: size
+		};
+		let newFiles = [...this.state.otherFiles];
+		let duplicate = false;
+		for (let i in newFiles) {
+			if (newFiles[i].name === file.name && newFiles[i].type === file.type) {
+				newFiles[i] = file;
+				duplicate = true;
+			}
+		}
+		if (!duplicate)
+			newFiles.push(file);
+		this.setState({otherFiles: newFiles});
+		this.saveProject();
+	}
+
 	onFocusMarkdown(i, value) {
 		let newCells = [...this.state.cells];
 		newCells[i].markdown.focused = value;
@@ -125,7 +177,7 @@ class Notebook extends React.Component {
 	}
 
 	calculateClassPackageName(code) {
-		let match = code.match(new RegExp("package" + '\\s(\\w+)'));
+		let match = code.match(new RegExp("package " + '([\\s\\S]*?)' + ";"));
 		if (match && match.length > 1)
 			return match[1];
 		else
@@ -137,17 +189,42 @@ class Notebook extends React.Component {
 		return 30 + newLineCount * 17;
 	}
 
-	incrementCheerpJPackageCounter() {
-		let curr = this.state.cheerpJInfo;
-		let newInfo = {
-			packageName: curr.packageName,
-			packageCounter: curr.packageCounter + 1
-		};
-		this.setState(newInfo);
+	deleteAll() {
+		this.deleteProject(this.state.selectedProject);
+		this.deleteOtherFiles();
+		this.setState({cells: this.generateDefaultProjectCells()});
+		this.saveProject();
+	}
+
+	deleteProject(name) {
+		let projects = this.state.projects;
+		if (Object.keys(projects).length <= 1)
+			return;
+		projects[name] = [];
+		this.setState({projects: projects});
+	}
+
+	deleteOtherFiles() {
+		this.setState({otherFiles: []});
+	}
+
+	selectProject(name) {
+		//TODO: This is not being used
+		this.setState({cells: this.state.projects[name]});
+		this.setState({selectedProject: name});
+	}
+
+	saveProject() {
+		let cells = [...this.state.cells];
+		let projects = this.state.projects;
+		projects[this.state.selectedProject] = cells;
+		this.setState({projects: projects});
+		this.saveNotebook();
 	}
 
 	initColabMode() {
-		console.log("Initing colaborative mode.");
+		//TODO: Colab
+		console.log("Initing collaborative mode.");
 		window.Convergence.connectAnonymously("http://localhost:8000/api/realtime/convergence/default", "kumin")
 			.then(d => {
 				let domain = d;
@@ -169,24 +246,76 @@ class Notebook extends React.Component {
 		}
 	}
 
+	loadNotebook() {
+		let cached = this.loadFromCache("CheerpJNotebook");
+		if (cached)
+			this.setState(cached);
+	}
+
+	saveNotebook() {
+		this.saveToCache("CheerpJNotebook", this.state);
+	}
+
+	loadFromCache(variable) {
+		const cache = localStorage.getItem(variable);
+		return JSON.parse(cache);
+	}
+
+	saveToCache(variable, value) {
+		localStorage.setItem(variable, JSON.stringify(value));
+	}
+
+	handleClose() {
+		this.setState({showModal: false});
+	}
+
+	handleShow(type) {
+		switch (type) {
+			case "import":
+				break;
+			case "export":
+				break;
+		}
+		this.setState({showModal: true});
+	}
+
+	exportProject() {
+		let obj = {
+			cells: this.state.cells,
+			otherFiles: this.state.otherFiles
+		};
+		return encodeURI(JSON.stringify(obj));
+	}
+
+	importProject(encoded) {
+		let decoded = JSON.parse(decodeURI(encoded));
+		this.setState({
+			cells: decoded.cells,
+			otherFiles: decoded.otherFiles
+		})
+	}
+
 	render() {
 		return (
 			<React.Fragment>
 				<div style={{display: "flex", alignItems: "flex-start"}}>
 					<StickyBox className="side-bar-sticky">
 						<Sidebar cells={this.state.cells}
+								 otherFiles={this.state.otherFiles}
 								 cheerpJInfo={this.state.cheerpJInfo}
-								 addNewCell={(type) => this.addNewCell(type)}
+								 addNewCell={(type, code) => this.addNewCell(type, code)}
 								 changeConsoleCellCode={(newCode) => this.changeConsoleCellCode(newCode)}
 								 addConsoleCellCode={(newCode) => this.addConsoleCellCode(newCode)}
-								 incrementCheerpJPackageCounter={() => this.incrementCheerpJPackageCounter()}
+								 addFile={(name, type, content, size) => this.addFile(name, type, content, size)}
+								 deleteAll={() => this.deleteAll()}
+								 openModal={(type) => this.handleShow(type)}
 						/>
 					</StickyBox>
 					<div>
 						<br/>
 						<div className="container-fluid no-padding">
 							<Row className="full-row">
-								<Col className='col-sm-2'>
+								<Col className='col-sm-1'>
 
 								</Col>
 								<Col className='col-sm-10'>
@@ -206,10 +335,12 @@ class Notebook extends React.Component {
 								<Button onClick={() => this.initColabMode()}> Init Colab </Button>
 						</div>
 						*/}
-						<div>
-
-						</div>
 					</div>
+					<ImportExportProjectModal show={this.state.showModal}
+											  handleClose={() => this.handleClose()}
+											  importProject={(encoded) => this.importProject(encoded)}
+											  exportProject={() => this.exportProject()}
+					/>
 				</div>
 			</React.Fragment>
 		);
