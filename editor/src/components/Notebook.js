@@ -13,6 +13,10 @@ import CellCode from "./CellCodeEnum";
 import Graphics from "./Graphics";
 import ImportExportProjectModal from "./ImportExportProjectModal";
 
+const localStorageName = "CheerpJNotebook";
+const indexedDbName = "CheerpJNotebookIndexexDb";
+const indexedDbStoreName = "CheerpJNotebookIndexexDbStore";
+
 class Notebook extends React.Component {
 	constructor(props) {
 		super(props);
@@ -247,13 +251,21 @@ class Notebook extends React.Component {
 	}
 
 	loadNotebook() {
-		let cached = this.loadFromCache("CheerpJNotebook");
+		let cached = this.loadFromCache(localStorageName);
 		if (cached)
 			this.setState(cached);
+		this.openIndexedDb(this.loadOtherFiles, this);
 	}
 
 	saveNotebook() {
-		this.saveToCache("CheerpJNotebook", this.state);
+		let objToSaveLocalStorage = {
+			cells: this.state.cells,
+			projects: this.state.projects,
+			selectedProject: this.state.selectedProject
+		};
+		this.saveToCache(localStorageName, objToSaveLocalStorage);
+		if (this.state.otherFiles.length > 0)
+			this.openIndexedDb(this.saveOtherFiles, this);
 	}
 
 	loadFromCache(variable) {
@@ -263,6 +275,48 @@ class Notebook extends React.Component {
 
 	saveToCache(variable, value) {
 		localStorage.setItem(variable, JSON.stringify(value));
+	}
+
+	saveOtherFiles(open, context) {
+		let db = open.result;
+		let tx = db.transaction(indexedDbStoreName, "readwrite");
+		for (let i in context.state.otherFiles)
+			tx.objectStore(indexedDbStoreName).put({id: i, file: context.state.otherFiles[i]});
+		tx.oncomplete = function () {
+			db.close();
+		};
+	}
+
+	loadOtherFiles(open, context) {
+		let db = open.result;
+		let tx = db.transaction(indexedDbStoreName, "readwrite");
+		let store = tx.objectStore(indexedDbStoreName);
+		let otherFiles = store.getAll();
+		otherFiles.onsuccess = function () {
+			let files = otherFiles.result;
+			let finalObj = [];
+			for (let i in files)
+				finalObj.push(files[i].file);
+			context.setState({otherFiles: finalObj});
+		}
+		tx.oncomplete = function () {
+			db.close();
+		};
+	}
+
+	openIndexedDb(onSuccess, context) {
+		if (!window.indexedDB)
+			return;
+		let open = window.indexedDB.open(indexedDbName, 1);
+
+		open.onupgradeneeded = function () {
+			let db = open.result;
+			db.createObjectStore(indexedDbStoreName, {keyPath: "id"});
+		};
+
+		open.onsuccess = () => {
+			onSuccess(open, context);
+		};
 	}
 
 	handleClose() {
