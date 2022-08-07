@@ -11,27 +11,20 @@ class Graphics extends React.Component {
 		this.nodes = {};
 	}
 
-	drawCanvas() {
+	drawCanvas(nodes) {
 		const canvas = this.canvasRef.current;
 		const context = canvas.getContext('2d');
 		context.fillStyle = '#1f1f1b';
 		context.fillRect(0, 0, context.canvas.width, context.canvas.height);
 
-		this.drawNodes(4);
-		this.drawMessage(0, 1, 0, 1);
-		this.drawMessage(2, 3, 1, 4);
-		this.drawMessage(1, 3, 2, 3);
-		this.drawMessage(3, 1, 3, 4);
-		this.drawMessage(1, 3, 4, 6);
-		this.drawMessage(0, 2, 1, 6);
-		this.drawMessage(1, 0, 1, 2);
+		this.drawNodes(nodes);
 	}
 
-	drawNodes(n) {
-		let space = this.canvasWidth / n;
-		for (let i = 0; i < n; i++) {
+	drawNodes(nodesObj) {
+		let space = this.canvasWidth / nodesObj.length;
+		for (let i = 0; i < nodesObj.length; i++) {
 			let pos = space / 2 + space * i;
-			this.nodes[i] = {name: "Minimal-Node", pos: pos};
+			this.nodes[i] = {name: nodesObj[i].nodeName, pos: pos};
 			this.drawNode(this.nodes[i]);
 		}
 	}
@@ -52,11 +45,18 @@ class Graphics extends React.Component {
 		context.stroke();
 	}
 
-	drawMessage(node, destNode, clock, destClock) {
+	drawMessages(messagesObj) {
+		for (let i in messagesObj) {
+			let m = messagesObj[i];
+			this.drawMessage(m.fromNode, m.toNode, m.time, m.time + 20, m.dropped);
+		}
+	}
+
+	drawMessage(node, destNode, clock, destClock, dropped) {
 		let fromX = this.nodes[node].pos;
 		let toX = this.nodes[destNode].pos;
-		let fromY = 75 + clock * 50;
-		let toY = 75 + destClock * 50;
+		let fromY = 75 + clock;
+		let toY = 75 + destClock;
 		const canvas = this.canvasRef.current;
 		const context = canvas.getContext('2d');
 		let headLength = 10;

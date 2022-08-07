@@ -12,10 +12,11 @@ import CellType from "./CellTypeEnum";
 import CellCode from "./CellCodeEnum";
 import Graphics from "./Graphics";
 import ImportExportProjectModal from "./ImportExportProjectModal";
+import Parser from "../hooks/Parser";
 
 const localStorageName = "CheerpJNotebook";
-const indexedDbName = "CheerpJNotebookIndexexDb";
-const indexedDbStoreName = "CheerpJNotebookIndexexDbStore";
+const indexedDbName = "CheerpJNotebookIndexedDb";
+const indexedDbStoreName = "CheerpJNotebookIndexedDbStore";
 
 class Notebook extends React.Component {
 	constructor(props) {
@@ -28,6 +29,7 @@ class Notebook extends React.Component {
 			selectedProject: "Project 1",
 			showModal: false
 		};
+		this.graphics = React.createRef();
 	}
 
 	componentDidMount() {
@@ -103,7 +105,10 @@ class Notebook extends React.Component {
 
 	changeConsoleCellCode(newCode) {
 		let newCell = this.state.consoleCell;
-		newCell.code = newCode;
+		let code = newCode;
+		if (code.includes("simulation ended"))
+			code = this.parseAndGraphics(newCode);
+		newCell.code = code;
 		newCell.style.height = this.calculateCellHeight(newCell.code);
 		this.setState({consoleCell: newCell});
 	}
@@ -224,6 +229,15 @@ class Notebook extends React.Component {
 		projects[this.state.selectedProject] = cells;
 		this.setState({projects: projects});
 		this.saveNotebook();
+	}
+
+	parseAndGraphics(output) {
+		let parser = new Parser();
+		let parsedOutput = parser.parseOutput(output);
+		console.log(parsedOutput);
+		this.graphics.current.drawCanvas(parsedOutput.nodes);
+		this.graphics.current.drawMessages(parsedOutput.messages);
+		return output;
 	}
 
 	initColabMode() {
@@ -380,7 +394,7 @@ class Notebook extends React.Component {
 													moveCell={(i, value) => this.moveCell(i, value)}
 													deleteCell={(i) => this.deleteCell(i)}
 									/>
-									<Graphics/>
+									<Graphics ref={this.graphics}/>
 								</Col>
 							</Row>
 						</div>
