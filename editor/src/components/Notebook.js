@@ -25,8 +25,6 @@ class Notebook extends React.Component {
 			cells: this.generateDefaultProjectCells(),
 			otherFiles: [],
 			consoleCell: this.generateCell(CellType.console, "", "xml", true, true),
-			projects: {"Project 1": this.cells},
-			selectedProject: "Project 1",
 			showModal: false
 		};
 		this.graphics = React.createRef();
@@ -34,6 +32,10 @@ class Notebook extends React.Component {
 
 	componentDidMount() {
 		this.loadNotebook();
+	}
+
+	componentDidUpdate() {
+		this.saveNotebook();
 	}
 
 	addNewCell(type, code) {
@@ -74,7 +76,6 @@ class Notebook extends React.Component {
 		if (!duplicate)
 			newCells.push(newCell);
 		this.setState({cells: newCells});
-		this.saveProject();
 	}
 
 	generateCell(type, code, mode, gutter, readOnly) {
@@ -129,7 +130,6 @@ class Notebook extends React.Component {
 		}
 		newCells[i].style.height = this.calculateCellHeight(newCode);
 		this.setState({cells: newCells});
-		this.saveProject();
 	}
 
 	moveCell(i, value) {
@@ -140,14 +140,12 @@ class Notebook extends React.Component {
 		newCells.splice(i, 1);
 		newCells.splice(i + value, 0, element);
 		this.setState({cells: newCells});
-		this.saveProject();
 	}
 
 	deleteCell(i) {
 		let newCells = [...this.state.cells];
 		newCells.splice(i, 1);
 		this.setState({cells: newCells});
-		this.saveProject();
 	}
 
 	addFile(name, type, content, size) {
@@ -168,7 +166,6 @@ class Notebook extends React.Component {
 		if (!duplicate)
 			newFiles.push(file);
 		this.setState({otherFiles: newFiles});
-		this.saveProject();
 	}
 
 	onFocusMarkdown(i, value) {
@@ -198,45 +195,10 @@ class Notebook extends React.Component {
 		return 30 + newLineCount * 17;
 	}
 
-	deleteAll() {
-		this.deleteProject(this.state.selectedProject);
-		this.deleteOtherFiles();
-		this.setState({cells: this.generateDefaultProjectCells()});
-		this.saveProject();
-	}
-
-	deleteProject(name) {
-		let projects = this.state.projects;
-		if (Object.keys(projects).length <= 1)
-			return;
-		projects[name] = [];
-		this.setState({projects: projects});
-	}
-
-	deleteOtherFiles() {
-		this.setState({otherFiles: []});
-	}
-
-	selectProject(name) {
-		//TODO: This is not being used
-		this.setState({cells: this.state.projects[name]});
-		this.setState({selectedProject: name});
-	}
-
-	saveProject() {
-		let cells = [...this.state.cells];
-		let projects = this.state.projects;
-		projects[this.state.selectedProject] = cells;
-		this.setState({projects: projects});
-		this.saveNotebook();
-	}
-
 	parseAndGraphics(output) {
 		let parser = new Parser();
 		let parsedOutput = parser.parseOutput(output);
-		console.log(parsedOutput);
-		this.graphics.current.drawCanvas(parsedOutput.nodes);
-		this.graphics.current.drawMessages(parsedOutput.messages);
+		this.graphics.current.drawCanvas(parsedOutput);
 		return output;
 	}
 
@@ -264,6 +226,15 @@ class Notebook extends React.Component {
 		}
 	}
 
+	deleteAll() {
+		this.deleteOtherFiles();
+		this.setState({cells: this.generateDefaultProjectCells()});
+	}
+
+	deleteOtherFiles() {
+		this.setState({otherFiles: []});
+	}
+
 	loadNotebook() {
 		let cached = this.loadFromCache(localStorageName);
 		if (cached)
@@ -273,9 +244,7 @@ class Notebook extends React.Component {
 
 	saveNotebook() {
 		let objToSaveLocalStorage = {
-			cells: this.state.cells,
-			projects: this.state.projects,
-			selectedProject: this.state.selectedProject
+			cells: this.state.cells
 		};
 		this.saveToCache(localStorageName, objToSaveLocalStorage);
 		if (this.state.otherFiles.length > 0)

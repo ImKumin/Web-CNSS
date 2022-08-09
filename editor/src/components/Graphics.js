@@ -6,18 +6,19 @@ class Graphics extends React.Component {
 	constructor(props) {
 		super(props);
 		this.canvasWidth = 1070;
-		this.canvasHeight = 500;
+		this.canvasHeight = 1000;
 		this.canvasRef = React.createRef();
 		this.nodes = {};
 	}
 
-	drawCanvas(nodes) {
+	drawCanvas(parsedOutput) {
 		const canvas = this.canvasRef.current;
 		const context = canvas.getContext('2d');
 		context.fillStyle = '#1f1f1b';
 		context.fillRect(0, 0, context.canvas.width, context.canvas.height);
 
-		this.drawNodes(nodes);
+		this.drawNodes(parsedOutput.nodes);
+		this.drawMessages(parsedOutput.messages);
 	}
 
 	drawNodes(nodesObj) {
@@ -32,6 +33,7 @@ class Graphics extends React.Component {
 	drawNode(node) {
 		const canvas = this.canvasRef.current;
 		const context = canvas.getContext('2d');
+		context.beginPath();
 		context.strokeStyle = 'white';
 		context.lineWidth = 1;
 		context.font = '14px arial';
@@ -43,32 +45,46 @@ class Graphics extends React.Component {
 		context.moveTo(node.pos, 50);
 		context.lineTo(node.pos, this.canvasHeight - 50);
 		context.stroke();
+		context.closePath();
 	}
 
 	drawMessages(messagesObj) {
+		let scale = this.calculateScale(messagesObj);
 		for (let i in messagesObj) {
 			let m = messagesObj[i];
-			this.drawMessage(m.fromNode, m.toNode, m.time, m.time + 20, m.dropped);
+			this.drawMessage(m.fromNode, m.toNode, m.time, m.time + 20, m.dropped, scale);
 		}
 	}
 
-	drawMessage(node, destNode, clock, destClock, dropped) {
+	drawMessage(node, destNode, clock, destClock, dropped, scale) {
 		let fromX = this.nodes[node].pos;
-		let toX = this.nodes[destNode].pos;
-		let fromY = 75 + clock;
-		let toY = 75 + destClock;
-		const canvas = this.canvasRef.current;
-		const context = canvas.getContext('2d');
+		let toX = dropped ? (this.nodes[node].pos + this.nodes[destNode].pos) / 2 : this.nodes[destNode].pos;
+		let fromY = 75 + clock * scale;
+		let toY = 75 + destClock * scale;
 		let headLength = 10;
 		let dx = toX - fromX;
 		let dy = toY - fromY;
 		let angle = Math.atan2(dy, dx);
+
+		const canvas = this.canvasRef.current;
+		const context = canvas.getContext('2d');
+		context.beginPath();
+		context.strokeStyle = 'white';
+		if (dropped)
+			context.strokeStyle = 'red';
 		context.moveTo(fromX, fromY);
 		context.lineTo(toX, toY);
 		context.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
 		context.moveTo(toX, toY);
 		context.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
 		context.stroke();
+		context.closePath();
+	}
+
+	calculateScale(messagesObj) {
+		let maxTime = messagesObj[messagesObj.length - 1].time + 20;
+		let minTime = messagesObj[0].time;
+		return (this.canvasHeight - 175) / (maxTime - minTime);
 	}
 
 	degToRad(degrees) {
