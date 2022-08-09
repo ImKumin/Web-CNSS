@@ -25,7 +25,8 @@ class Notebook extends React.Component {
 			cells: this.generateDefaultProjectCells(),
 			otherFiles: [],
 			consoleCell: this.generateCell(CellType.console, "", "xml", true, true),
-			showModal: false
+			showModal: false,
+			importModal: false
 		};
 		this.graphics = React.createRef();
 	}
@@ -233,6 +234,7 @@ class Notebook extends React.Component {
 
 	deleteOtherFiles() {
 		this.setState({otherFiles: []});
+		indexedDB.deleteDatabase(indexedDbName);
 	}
 
 	loadNotebook() {
@@ -309,8 +311,10 @@ class Notebook extends React.Component {
 	handleShow(type) {
 		switch (type) {
 			case "import":
+				this.setState({importModal: true});
 				break;
 			case "export":
+				this.setState({importModal: false});
 				break;
 		}
 		this.setState({showModal: true});
@@ -318,8 +322,7 @@ class Notebook extends React.Component {
 
 	exportProject() {
 		let obj = {
-			cells: this.state.cells,
-			otherFiles: this.state.otherFiles
+			cells: this.state.cells
 		};
 		return encodeURI(JSON.stringify(obj));
 	}
@@ -327,9 +330,8 @@ class Notebook extends React.Component {
 	importProject(encoded) {
 		let decoded = JSON.parse(decodeURI(encoded));
 		this.setState({
-			cells: decoded.cells,
-			otherFiles: decoded.otherFiles
-		})
+			cells: decoded.cells
+		});
 	}
 
 	render() {
@@ -374,6 +376,7 @@ class Notebook extends React.Component {
 						*/}
 					</div>
 					<ImportExportProjectModal show={this.state.showModal}
+											  import={this.state.importModal}
 											  handleClose={() => this.handleClose()}
 											  importProject={(encoded) => this.importProject(encoded)}
 											  exportProject={() => this.exportProject()}

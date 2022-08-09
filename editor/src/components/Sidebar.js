@@ -7,7 +7,7 @@ import UploadFiles from "./UploadFiles";
 function Sidebar(props) {
 	function renderOtherFiles(file, index) {
 		return <React.Fragment key={index}>
-			<div>{file.name + " - " + file.size + " bytes"}</div>
+			<div>{file.name + " - " + file.content.byteLength + " bytes"}</div>
 		</React.Fragment>;
 	}
 
