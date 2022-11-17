@@ -36,6 +36,7 @@ class CollaborativeMode {
 				});
 			})
 			.then((model) => {
+				console.log("hadleing");
 				this.handleOpen(model, thisState);
 			})
 			.catch(error => {

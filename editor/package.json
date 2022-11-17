@@ -1,9 +1,9 @@
 {
 	"name": "editor",
 	"version": "0.1.0",
+	"private": true,
 	"homepage": "",
 	"WARNING": "homepage should not exist when testing in localHost OTHERWISE: https://ImKumin.github.io/CNSSGitPage",
-	"private": true,
 	"dependencies": {
 		"@babel/runtime": "^7.18.3",
 		"@convergence/convergence": "^1.0.0-rc.12",

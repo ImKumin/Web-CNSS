@@ -16,6 +16,7 @@ function Sidebar(props) {
 			<SidebarContent>
 				<div className="side-bar-content">
 					<Menu iconShape="square">
+						<MenuItem onClick={() => props.connectToConvergence()}> Connect to Collaborative Mode</MenuItem>
 						<SubMenu title="Add Cell">
 							<MenuItem onClick={() => props.addNewCell("markdown")}>Add Markdown Cell</MenuItem>
 							<MenuItem onClick={() => props.addNewCell("empty")}>Add Java Empty Cell</MenuItem>

@@ -35,11 +35,14 @@ class Notebook extends React.Component {
 
 	componentDidMount() {
 		this.loadNotebook();
-		this.convergence = new CollaborativeMode(this);
 	}
 
 	componentDidUpdate() {
 		this.saveNotebook();
+	}
+
+	connectToConvergence() {
+		this.convergence = new CollaborativeMode(this);
 	}
 
 	addNewCell(type, code) {
@@ -332,6 +335,7 @@ class Notebook extends React.Component {
 								 addFile={(name, type, content, size) => this.addFile(name, type, content, size)}
 								 deleteAll={() => this.deleteAll()}
 								 openModal={(type) => this.handleShow(type)}
+								 connectToConvergence={() => this.connectToConvergence()}
 						/>
 					</StickyBox>
 					<div>
