@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   web-cnss:
-    build: 'C:\Users\Im Kumin\WebstormProjects\Web-CNSS\editor'
+    build: './editor'
     ports: [ "3000:3000" ]
     container_name: WEB-CNSS
   convergence:
