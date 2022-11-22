@@ -3,6 +3,7 @@ WORKDIR /
 
 COPY package.json .
 
+RUN npm rebuild node-sass
 RUN npm install
 
 COPY . .
