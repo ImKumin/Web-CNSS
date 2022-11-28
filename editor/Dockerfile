@@ -1,10 +1,17 @@
 FROM node:16.13.1
-WORKDIR /
+WORKDIR /app
+
+ENV PATH /app/node_modules/.bin:$PATH
 
 COPY package.json .
+COPY package-lock.json .
 
+RUN mkdir -p node_modules/node-sass/vendor/linux-x64-93
+RUN curl -L https://github.com/sass/node-sass/releases/download/v7.0.1/linux-x64-93_binding.node -o node_modules/node-sass/vendor/linux-x64-93/binding.node
+
+RUN npm install -g npm@9.1.2
+RUN npm install react-scripts@5.0.0 -g
 RUN npm rebuild node-sass
-RUN npm install
 
 COPY . .
 
