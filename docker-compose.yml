@@ -4,8 +4,6 @@ services:
     build: './editor'
     ports: [ "3000:3000" ]
     container_name: WEB-CNSS
-    volumes:
-      - '/app/node_modules'
   convergence:
     image: convergencelabs/convergence-omnibus
     ports: [ "8000:80" ]
