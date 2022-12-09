@@ -9,9 +9,13 @@ In short, to implement this idea, since CNSS is implemented in Java, we need to 
 This section is a ’tutorial’ on how to deploy and run the Docker container of Web-CNSS,
 and as we have seen in the last section, we built a docker-compose to ease this process. So
 here are the steps to do this:
+
 • Download Docker - ’https://www.docker.com/get-started/’
+
 • Clone the git repository of our application - Git Repository
+
 • Run ’docker-compose up’
+
 The application is hosted on port 3000, so you can access it by using this URL: http://localhost:3000/.
 
 ## Authors
